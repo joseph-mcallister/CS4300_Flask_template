@@ -152,8 +152,17 @@
            </div>
            <div style="display:none" class="info-popup" id="votes">
                <h4>Sample Vote Data</h4>
-               <p>{{ data["votes" ]}}</p>
-               <h2 class="">{{ data["vote_score"]}}% votes with party</h2>
+               {% if data["votes"] %}
+                    <br>
+                    <h2 class="">{{ data["politician"] }} votes with party {{ data["vote_score"]}}% of the time</h2> <br>
+                    {% for vote in data["votes"] %}
+                        <p> Title/Description of bill: {{vote["title"]}} </p>
+                        <p> Topic related to issue: {{vote["relevant_topic"]}} </p>
+                        <p> Position on bill: {{vote["vote_position"]}} </p> <br> <br>
+                    {% endfor %}
+               {% else %}
+                    <h2> This politician has not voted on this issue. </h2>
+               {% endif %}
            </div>
        </div>
      </div>

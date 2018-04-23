@@ -133,6 +133,7 @@ def process_tweets(politician, query, n):
 	query_tokens = tokenizer_custom(query)
 
     #check query validity before proceeding
+	valid_query = False
 	for token in query_tokens:
 		if token in vocab:
 			valid_query = True
@@ -230,19 +231,35 @@ def search():
 							relevant_topic = topic["name"]
 							break
 				#If query and vote have similar topics or if query in bill description, add the vote to vote data
-				if issue_in_topics or free_form_query.lower() in vote["vote"]["description"].lower():
-					description = vote["vote"]["description"]
-					politician_vote = "Unknown"
-					for position in vote["vote"]["positions"]:
-						if position["PoliticianName"] == politician_query:
-							politician_vote = position["vote_position"]
-							politician_party = position["party"]
-							democratic_votes = vote["vote"]["democratic"]
-							republican_votes = vote["vote"]["republican"]
-							independent_votes = vote["vote"]["independent"]
-							break
-					if position["vote_position"] != "Not Voting" and position["vote_position"] != "Present":
-						data["votes"].append({"relevant_topic":relevant_topic, "description":description, "vote_position":politician_vote, "independent":independent_votes, "democratic":democratic_votes, "republican":republican_votes, "party":politician_party})
+				# Add the title if there is a title, otherwise just add the description
+				if "title" in vote["vote"]["bill"].keys() and vote["vote"]["bill"]["title"]:
+					if issue_in_topics or free_form_query.lower() in vote["vote"]["description"].lower() or free_form_query.lower() in vote["vote"]["bill"]["title"].lower():
+						title = vote["vote"]["bill"]["title"]
+						politician_vote = "Unknown"
+						for position in vote["vote"]["positions"]:
+							if position["PoliticianName"] == politician_query:
+								politician_vote = position["vote_position"]
+								politician_party = position["party"]
+								democratic_votes = vote["vote"]["democratic"]
+								republican_votes = vote["vote"]["republican"]
+								independent_votes = vote["vote"]["independent"]
+								break
+						if position["vote_position"] != "Not Voting" and position["vote_position"] != "Present" and politician_vote != "Unknown":
+							data["votes"].append({"relevant_topic":relevant_topic, "title":title, "vote_position":politician_vote, "independent":independent_votes, "democratic":democratic_votes, "republican":republican_votes, "party":politician_party})
+				else:
+					if issue_in_topics or free_form_query.lower() in vote["vote"]["description"].lower():
+						title = vote["vote"]["description"]
+						politician_vote = "Unknown"
+						for position in vote["vote"]["positions"]:
+							if position["PoliticianName"] == politician_query:
+								politician_vote = position["vote_position"]
+								politician_party = position["party"]
+								democratic_votes = vote["vote"]["democratic"]
+								republican_votes = vote["vote"]["republican"]
+								independent_votes = vote["vote"]["independent"]
+								break
+						if position["vote_position"] != "Not Voting" and position["vote_position"] != "Present" and politician_vote != "Unknown":
+							data["votes"].append({"relevant_topic":relevant_topic, "title":title, "vote_position":politician_vote, "independent":independent_votes, "democratic":democratic_votes, "republican":republican_votes, "party":politician_party})
 			#Do basic scoring system where score is % of time vote with party
 			vote_score = vote_score_agree_with_party(data["votes"])
 			data["vote_score"] = vote_score
