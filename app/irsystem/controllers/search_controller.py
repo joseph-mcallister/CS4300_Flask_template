@@ -133,6 +133,7 @@ def process_tweets(politician, query, n):
 	query_tokens = tokenizer_custom(query)
 
     #check query validity before proceeding
+	valid_query = False
 	for token in query_tokens:
 		if token in vocab:
 			valid_query = True
@@ -212,9 +213,10 @@ def search():
 			data["donations"] = don_data
 
 			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
-			avg_sentiment = round(total_sentiment/10,2)
+			
 			#return top 5 for now
 			if len(tweet_dict) != 0:
+				avg_sentiment = round(total_sentiment/10,2)
 				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment}
 
 			raw_vote_data = get_votes_by_politician(politician_query)
