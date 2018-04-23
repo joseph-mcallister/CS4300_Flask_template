@@ -2,49 +2,60 @@ from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 import os, json
-from app.irsystem.models.database_helpers import get_donations, get_tweets_by_politician, get_votes_by_politician, get_co_occurrence
+from app.irsystem.models.database_helpers import *
+from empath import Empath
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.tokenize import TweetTokenizer
 from nltk.stem import PorterStemmer
+from nltk import corpus as nltkCorp
 import re
 import numpy as np
 from sklearn.preprocessing import normalize
 from scipy.sparse import *
+import time 
 
 project_name = "Fundy"
 net_id = "Samantha Dimmer: sed87; James Cramer: jcc393; Dan Stoyell: dms524; Isabel Siergiej: is278; Joe McAllister: jlm493"
 
-def filter_donations(donations, politician, issue):
-	issue = issue.lower()
-	relevant_fields = [
-		"DonorCommitteeNameNormalized",
-		"DonorOccupationNormalized",
-		"DonorEmployerNormalized",
-		"DonorNameNormalized",
-		"DonorCandidateOffice",
-		"DonorOrganization",
-	]
-
-	filtered = []
-	for don in donations:
-		is_relevant = False
-		for field in relevant_fields:
-			if issue in don[field].lower():
-				is_relevant = True
-		if is_relevant:
-			filtered.append(don)
-
-	return filtered
-
 def process_donations(donations):
 	total = 0
+	donations_list = []
+	donations = list(donations)
+	position_score = 0
 	for don in donations:
-		total += float(don["TransactionAmount"])
+		don["org_data"] = get_org_data(don["DonorOrganization"])
+		don["TransactionAmount"] = int(don["TransactionAmount"])
+		don["org_data"]["donation_total"] = int(float(don["org_data"]["donation_total"]))
+		donations_list.append(don)
+		total += don["TransactionAmount"]
+
+		position_score += float(don["org_data"]["democrat_total"]) / (float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]))
+
+	if len(donations_list) > 0:
+		position_score = round(position_score/len(donations_list)*100, 2)
+	else:
+		position_score = 50.00
 
 	return {
 		"total": total,
-		"sample": sorted(donations, key=lambda d:d["TransactionAmount"], reverse=True)[:10]
+		"sample": sorted(donations_list, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(donations_list), 10)],
+		"score": position_score,
 	}
+
+
+def get_issue_list(issue):
+	stemmer = PorterStemmer()
+
+	words = set([stemmer.stem(w.lower()) for w in issue.split(" ")]) - set(nltkCorp.stopwords.words('english'))
+	synonyms = []
+	for word in words:
+		for synset in nltkCorp.wordnet.synsets(word):
+			for lemma in synset.lemmas()[:min(5, len(synset.lemmas()))]:
+				synonyms.append(str(lemma.name()))
+	final = set(synonyms) | words
+
+	return final
+
 
 # Calculate vote score based simply on if they voted yes or no on an issue
 def vote_score_yes_no(votes):
@@ -194,17 +205,11 @@ def search():
 			"votes": [],
 			"vote_score": 0.0
 		}
-		if politician_query:
-			#Get empath categories for free form query
-			raw_donation_data = get_donations(politician_query)
-			if(raw_donation_data.count() > 0):
-				# filtered_donations = filter_donations(raw_donation_data, politician_query, free_form_query)
-				# don_data = process_donations(filtered_donations)
-				don_data = {
-					"total": 10,
-					"sample": [],
-				}
-				data["donations"] = don_data
+		if politician_query:	
+			donation_data = get_relevant_donations(politician_query, get_issue_list(free_form_query))
+
+			don_data = process_donations(donation_data)
+			data["donations"] = don_data
 
 			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
 			avg_sentiment = round(total_sentiment/10,2)
@@ -242,7 +247,8 @@ def search():
 			vote_score = vote_score_agree_with_party(data["votes"])
 			data["vote_score"] = vote_score
 		if free_form_query:
-			print("Need to implement this")
+			pass
+			#print("Need to implement this")
 		return render_template('search.html',
 				name=project_name,
 				netid=net_id,
