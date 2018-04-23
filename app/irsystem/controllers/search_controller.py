@@ -2,49 +2,60 @@ from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 import os, json
-from app.irsystem.models.database_helpers import get_donations, get_tweets_by_politician, get_votes_by_politician, get_co_occurrence
+from app.irsystem.models.database_helpers import *
+from empath import Empath
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.tokenize import TweetTokenizer
 from nltk.stem import PorterStemmer
+from nltk import corpus as nltkCorp
 import re
 import numpy as np
 from sklearn.preprocessing import normalize
 from scipy.sparse import *
+import time 
 
 project_name = "Fundy"
 net_id = "Samantha Dimmer: sed87; James Cramer: jcc393; Dan Stoyell: dms524; Isabel Siergiej: is278; Joe McAllister: jlm493"
 
-def filter_donations(donations, politician, issue):
-	issue = issue.lower()
-	relevant_fields = [
-		"DonorCommitteeNameNormalized",
-		"DonorOccupationNormalized",
-		"DonorEmployerNormalized",
-		"DonorNameNormalized",
-		"DonorCandidateOffice",
-		"DonorOrganization",
-	]
-
-	filtered = []
-	for don in donations:
-		is_relevant = False
-		for field in relevant_fields:
-			if issue in don[field].lower():
-				is_relevant = True
-		if is_relevant:
-			filtered.append(don)
-
-	return filtered
-
 def process_donations(donations):
 	total = 0
+	donations_list = []
+	donations = list(donations)
+	position_score = 0
 	for don in donations:
-		total += float(don["TransactionAmount"])
+		don["org_data"] = get_org_data(don["DonorOrganization"])
+		don["TransactionAmount"] = int(don["TransactionAmount"])
+		don["org_data"]["donation_total"] = int(float(don["org_data"]["donation_total"]))
+		donations_list.append(don)
+		total += don["TransactionAmount"]
+
+		position_score += float(don["org_data"]["democrat_total"]) / (float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]))
+
+	if len(donations_list) > 0:
+		position_score = round(position_score/len(donations_list)*100, 2)
+	else:
+		position_score = 50.00
 
 	return {
 		"total": total,
-		"sample": sorted(donations, key=lambda d:d["TransactionAmount"], reverse=True)[:10]
+		"sample": sorted(donations_list, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(donations_list), 10)],
+		"score": position_score,
 	}
+
+
+def get_issue_list(issue):
+	stemmer = PorterStemmer()
+
+	words = set([stemmer.stem(w.lower()) for w in issue.split(" ")]) - set(nltkCorp.stopwords.words('english'))
+	synonyms = []
+	for word in words:
+		for synset in nltkCorp.wordnet.synsets(word):
+			for lemma in synset.lemmas()[:min(5, len(synset.lemmas()))]:
+				synonyms.append(str(lemma.name()))
+	final = set(synonyms) | words
+
+	return final
+
 
 # Calculate vote score based simply on if they voted yes or no on an issue
 def vote_score_yes_no(votes):
@@ -118,11 +129,10 @@ def tokenizer_custom(tweet):
 #return (top n tweet indices, n top tweet scores)
 def process_tweets(politician, query, n):
 	tweets = get_tweets_by_politician(politician)
-	vocab = json.load((open("app/irsystem/models/vocab.json", 'r')))
+	vocab = json.load((open("app/irsystem/models/vocab.json", 'r')))['vocab']
 	query_tokens = tokenizer_custom(query)
 
     #check query validity before proceeding
-	valid_query = False
 	for token in query_tokens:
 		if token in vocab:
 			valid_query = True
@@ -131,39 +141,46 @@ def process_tweets(politician, query, n):
 	if valid_query == False:
 		return ([],[])
 
-    #dot query arrays
-	acc = csr_matrix(np.ones(len(vocab)))
+	#dot query arrays
+	query_dict = {}
 	for token in query_tokens:
-    	#build vector from postings
-		postings = get_co_occurrence(token)
-		vectorized = np.zeros(len(vocab))
-		for post_obj in postings['postings']:
-			idx = post_obj['index']
-			score = post_obj['score']
-			vectorized[idx] = score
-		vectorized = csr_matrix(vectorized)
-		vec_norm = normalize(vectorized, 'l1')
-		acc = acc.multiply(vec_norm)
-	arr = acc.transpose()
+		postings = get_co_occurrence(token)['postings']
+		for posting in postings:
+			idx = posting['index']
+			score = posting['score']
+			word = vocab[idx]
+			if word in query_dict:
+				query_dict[word] *= score
+			else:
+				query_dict[word] = score
 
-    #vectorize politician tweets
-	just_tweets = [tweet['tweet_text'] for tweet in tweets]
-	vectorizer = CountVectorizer(vocabulary = vocab, tokenizer = tokenizer_custom)
-	word_counts = vectorizer.fit_transform(just_tweets)
+	#get similarity for each tweet
+	sim_scores = []
+	just_tweets = []
+	for tweet in tweets:
+		text = tweet['tweet_text']
+		sentiment = tweet['sentiment']
+		just_tweets.append((text, sentiment))
+		tokens = tokenizer_custom(text)
+		sim_score = 0.0
+		for token in tokens:
+			if token in query_dict:
+				sim_score += query_dict[token]
+		sim_scores.append(sim_score)
 
-    #determine top matches
-	doc_scores = (word_counts*arr).transpose()
-	doc_scores = doc_scores.todense()
-	top_docs = list(np.asarray(np.argsort(-1*doc_scores)))[0][:n]
-	top_scores = list(np.asarray(-1*np.sort(-1*doc_scores)))[0][:n]
+	sim_scores = np.array(sim_scores)
 
-    #turn tweet indices into actual tweets
-	tweet_lst = []
-	for tweet_idx in top_docs:
-		tweet_lst.append(just_tweets[tweet_idx])
+	top_scores = -1*np.sort(-1*sim_scores)[:n]
+	top_docs = np.argsort(-1*sim_scores)[:n]
 
-	return (tweet_lst, top_scores)
+	final_lst = []
+	total_sentiment = 0.0
+	for i in range(len(top_docs)):
+		idx = top_docs[i]
+		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i]})
+		total_sentiment += just_tweets[idx][1]["compound"]
 
+	return (final_lst, total_sentiment)
 
 @irsystem.route('/', methods=['GET'])
 def search():
@@ -188,23 +205,17 @@ def search():
 			"votes": [],
 			"vote_score": 0.0
 		}
-		if politician_query:
-			#Get empath categories for free form query
-			raw_donation_data = get_donations(politician_query)
-			if(raw_donation_data.count() > 0):
-				# filtered_donations = filter_donations(raw_donation_data, politician_query, free_form_query)
-				# don_data = process_donations(filtered_donations)
-				don_data = {
-					"total": 10,
-					"sample": [],
-				}
-				data["donations"] = don_data
+		if politician_query:	
+			donation_data = get_relevant_donations(politician_query, get_issue_list(free_form_query))
 
-			top_tweets, top_tweet_scores = process_tweets(politician_query, free_form_query, 5)
+			don_data = process_donations(donation_data)
+			data["donations"] = don_data
+
+			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
+			avg_sentiment = round(total_sentiment/10,2)
 			#return top 5 for now
-			if len(top_tweets) != 0:
-				for tweet in top_tweets:
-					data["tweets"].append(tweet)
+			if len(tweet_dict) != 0:
+				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment}
 
 			raw_vote_data = get_votes_by_politician(politician_query)
 			# Find all votes that have a subject that contains the issue typed in
@@ -236,7 +247,8 @@ def search():
 			vote_score = vote_score_agree_with_party(data["votes"])
 			data["vote_score"] = vote_score
 		if free_form_query:
-			print("Need to implement this")
+			pass
+			#print("Need to implement this")
 		return render_template('search.html',
 				name=project_name,
 				netid=net_id,
