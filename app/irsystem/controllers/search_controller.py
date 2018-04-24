@@ -103,7 +103,7 @@ def vote_score_agree_with_party(votes):
 	if len(votes) == 0 or len(votes) == total_party_votes:
 		score = 0
 	else:
-		score = round((total_agree-len(votes))/(total_party_votes-len(votes)), 2)
+		score = round((total_agree-len(votes))/(total_party_votes-len(votes)), 2)*100.0
 	return score
 	
 def tokenizer_custom(tweet):
