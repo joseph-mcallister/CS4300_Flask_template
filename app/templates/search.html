@@ -141,7 +141,7 @@
                     </tbody>
                 </table>
            </div>
-           <div style="display:none" class="info-popup" id="tweets">
+           <div style="display:block" class="info-popup" id="tweets">
                <h3 align="center">Top 10 Tweet Matches</h3>
                <h5>{{data["politician"]}} tweets an average sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5>
                {% for tweet in data["tweets"]["tweet_dict"] %}
