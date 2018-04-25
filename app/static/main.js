@@ -65,4 +65,8 @@ function validateForm() {
       alert("Please enter an issue");
       return false;
     }
+    console.log("Finding results for " + politician + "\'s view on " + issue + "!");
+    document.getElementById("submit-button").style.display = "none"; //show spinner
+    document.getElementById("loading-button").style.display = "block"; //show spinner
+    $(this).find(':input[type=submit]').prop('disabled', true);
 }
