@@ -57,12 +57,12 @@
             <h1 class="mb-5">Putting the fun-ds back in politics</h1>
           </div>
           <div class="col-md-10 col-lg-8 col-xl-7 mx-auto">
-            <form id="form" onsubmit="submitButton.disabled = true; return validateForm();" class="col-12 form-inline global-search">
+            <form id="form" onsubmit="return validateForm();" class="col-12 form-inline global-search">
               <div>
                 <div class="container">
                   <div class="col-12 col-md-12 mb-2 mb-md-0">
                     <input id="politician_input" type="text" name="politician_name" class="form-control form-control-lg" placeholder="A Politician's Name"/>
-                    <input id="free_form_input" type="text" name="free_form" class="form-control form-control-lg" placeholder="Free Form Input">
+                    <input id="free_form_input" type="text" name="free_form" class="form-control form-control-lg" placeholder="Political Issue">
                   </div>
                   <div class="col-12 col-md-12">
                     <button id="submit-button" type="submit" name="submitButton" class="buttonload btn btn-block btn-lg btn-primary">Search</button>
@@ -78,7 +78,7 @@
 
     <section style="margin-top:25px" class="results">
     <form class="form-inline global-search">
-        <div>
+        <div style="margin: 0 auto; padding-bottom: 30px;">
           <h2>{{output_message}}</h2>
         </div>
     </form>
