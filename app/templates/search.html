@@ -151,17 +151,20 @@
                 {% endfor %}
            </div>
            <div style="display:none" class="info-popup" id="votes">
-               <h4>Sample Vote Data</h4>
                {% if data["votes"] %}
                     <br>
-                    <h2 class="">{{ data["politician"] }} votes with party {{ data["vote_score"]}}% of the time</h2> <br>
+                    <h2 class="">{{ data["party"] }} {{ data["politician"] }} votes with {{ data["vote_score_democrat"]}}% of Democrats and {{ data["vote_score_republican"]}}% of Republicans on the issue of {{ data["issue"] }}</h2> <br>
                     {% for vote in data["votes"] %}
-                        <p> Title/Description of bill: {{vote["title"]}} </p>
+                        <p> Title of bill: {{vote["title"]}} </p>
+                        <p> Description of bill: {{vote["description"]}} </p>
                         <p> Topic related to issue: {{vote["relevant_topic"]}} </p>
-                        <p> Position on bill: {{vote["vote_position"]}} </p> <br> <br>
+                        <p> {{ data["politician"] }} position on bill: {{vote["vote_position"]}} </p> 
+                        <p> Democratic votes on bill: Yes votes: {{vote["democratic"]["yes"]}} No votes: {{vote["democratic"]["no"]}} </p>
+                        <p> Republican votes on bill: Yes votes: {{vote["republican"]["yes"]}} No votes: {{vote["republican"]["no"]}} </p>
+                        <a href='{{vote["url"]}}'>Click here for more info about the bill</a><br> <br>
                     {% endfor %}
                {% else %}
-                    <h2> This politician has not voted on this issue. </h2>
+                    <h2> {{ data["politician"] }} has not voted on this issue. </h2>
                {% endif %}
            </div>
        </div>
