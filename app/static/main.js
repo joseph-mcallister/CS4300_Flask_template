@@ -65,4 +65,10 @@ function validateForm() {
       alert("Please enter an issue");
       return false;
     }
+    else {
+      document.getElementById("submit-button").disabled = true;
+      document.getElementById("submit-button").style.display = "none"; //show spinner
+      document.getElementById("loading-button").style.display = "block"; //show spinner
+      $(this).find(':input[type=submit]').prop('disabled', true);
+    }
 }

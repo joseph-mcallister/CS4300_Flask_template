@@ -31,7 +31,7 @@
     <script src="/static/awesomplete.js" async></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- Load custom js  -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="/static/main.js"></script>
@@ -57,15 +57,16 @@
             <h1 class="mb-5">Putting the fun-ds back in politics</h1>
           </div>
           <div class="col-md-10 col-lg-8 col-xl-7 mx-auto">
-            <form onsubmit="return validateForm()" class="col-12 form-inline global-search">
+            <form id="form" onsubmit="return validateForm();" class="col-12 form-inline global-search">
               <div>
                 <div class="container">
                   <div class="col-12 col-md-12 mb-2 mb-md-0">
                     <input id="politician_input" type="text" name="politician_name" class="form-control form-control-lg" placeholder="A Politician's Name"/>
-                    <input id="free_form_input" type="text" name="free_form" class="form-control form-control-lg" placeholder="Free Form Input">
+                    <input id="free_form_input" type="text" name="free_form" class="form-control form-control-lg" placeholder="Political Issue">
                   </div>
                   <div class="col-12 col-md-12">
-                    <button type="submit" class="btn btn-block btn-lg btn-primary">Search</button>
+                    <button id="submit-button" type="submit" name="submitButton" class="buttonload btn btn-block btn-lg btn-primary">Search</button>
+                    <div id="loading-button" style="display:none" class="buttonload btn btn-block btn-lg btn-primary"><i class="fa fa-spinner fa-spin"></i></div>
                   </div>
                 </div>
               </div>
@@ -77,7 +78,7 @@
 
     <section style="margin-top:25px" class="results">
     <form class="form-inline global-search">
-        <div>
+        <div style="margin: 0 auto; padding-bottom: 30px;">
           <h2>{{output_message}}</h2>
         </div>
     </form>
@@ -141,7 +142,7 @@
                     </tbody>
                 </table>
            </div>
-           <div style="display:none" class="info-popup" id="tweets">
+           <div style="display:block" class="info-popup" id="tweets">
                <h3 align="center">Top 10 Tweet Matches</h3>
                <h5>{{data["politician"]}} tweets an average sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5>
                {% for tweet in data["tweets"]["tweet_dict"] %}
