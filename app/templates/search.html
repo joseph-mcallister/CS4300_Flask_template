@@ -62,7 +62,7 @@
                 <div class="container">
                   <div class="col-12 col-md-12 mb-2 mb-md-0">
                     <input id="politician_input" type="text" name="politician_name" class="form-control form-control-lg" placeholder="A Politician's Name"/>
-                    <input id="free_form_input" type="text" name="free_form" class="form-control form-control-lg" placeholder="Free Form Input">
+                    <input id="free_form_input" type="text" name="free_form" class="form-control form-control-lg" placeholder="A Political Issue">
                   </div>
                   <div class="col-12 col-md-12">
                     <button type="submit" class="btn btn-block btn-lg btn-primary">Search</button>
@@ -76,11 +76,10 @@
     </header>
 
     <section style="margin-top:25px" class="results">
-    <form class="form-inline global-search">
-        <div>
-          <h2>{{output_message}}</h2>
+        <div align="center">
+          <h2>{{output_message_politician}}</h2>
+          <h2>{{output_message_issue}}</h2><br>
         </div>
-    </form>
     <div class="container">
         {% if data %}
          <div class="row">
@@ -154,6 +153,33 @@
                {% if data["votes"] %}
                     <br>
                     <h2 class="">{{ data["party"] }} {{ data["politician"] }} votes with {{ data["vote_score_democrat"]}}% of Democrats and {{ data["vote_score_republican"]}}% of Republicans on the issue of {{ data["issue"] }}</h2> <br>
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bill Title</th>
+                            <th>Bill Description</th>
+                            <th>Related Topic</th>
+                            <th>{{ data["politician"] }} position</th>
+                            <th>Democratic votes</th>
+                            <th>Republican votes</th>
+                            <th>URL for more info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vote in data["votes"] %}
+                            <tr>
+                                <td>{{vote["title"]}}</td>
+                                <td>{{vote["description"]}}</td>
+                                <td>{{vote["relevant_topic"]}}</td>
+                                <td>{{vote["vote_position"]}}</td>
+                                <td>Yes: {{vote["democratic"]["yes"]}} <br> No: {{vote["democratic"]["no"]}}</td>
+                                <td>Yes: {{vote["republican"]["yes"]}} <br> No: {{vote["republican"]["no"]}}</td>
+                                <td><a href='{{vote["url"]}}'>Link</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+<!--
                     {% for vote in data["votes"] %}
                         <p> Title of bill: {{vote["title"]}} </p>
                         <p> Description of bill: {{vote["description"]}} </p>
@@ -163,6 +189,7 @@
                         <p> Republican votes on bill: Yes votes: {{vote["republican"]["yes"]}} No votes: {{vote["republican"]["no"]}} </p>
                         <a href='{{vote["url"]}}'>Click here for more info about the bill</a><br> <br>
                     {% endfor %}
+-->
                {% else %}
                     <h2> {{ data["politician"] }} has not voted on this issue. </h2>
                {% endif %}
