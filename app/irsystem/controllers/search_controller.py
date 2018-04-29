@@ -50,8 +50,6 @@ def process_donations(donations, issue):
 	else:
 		position_score = 50.00
 
-	print(len(direct_matches))
-
 	if len(direct_matches) <= 10:
 		sample = sorted(direct_matches, key=lambda d:d["TransactionAmount"], reverse=True)
 		sample += sorted(donations_list, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(donations_list), 10-len(sample))]
@@ -305,7 +303,7 @@ def search():
 			data["donations"] = don_data
 
 			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
-			
+
 			#return top 5 for now
 			if len(tweet_dict) != 0:
 				avg_sentiment = round(total_sentiment/10,2)
