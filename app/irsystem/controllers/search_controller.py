@@ -12,7 +12,7 @@ import re
 import numpy as np
 from sklearn.preprocessing import normalize
 from scipy.sparse import *
-import time 
+import time
 from bisect import bisect_left
 
 project_name = "Fundy"
@@ -190,7 +190,7 @@ def process_votes(raw_vote_data, query, politician, data):
 	data["party"] = politician_party
 	data["vote_scale"] = democrat_vote_score/(republican_vote_score+democrat_vote_score)
 	return data
-	
+
 def tokenizer_custom(tweet):
     token = TweetTokenizer()
     stemmer = PorterStemmer()
@@ -225,7 +225,7 @@ def process_tweets(politician, query, n):
 		else:
 			query_tokens.remove(token)
 	if valid_query == False:
-		return ([],[])
+		return ([],[],0)
 
 	#dot query arrays
 	query_dict = {}
@@ -265,13 +265,17 @@ def process_tweets(politician, query, n):
 
 	final_lst = []
 	total_sentiment = 0.0
+	num_dem = 0
 	for i in range(len(top_docs)):
 		idx = top_docs[i]
 		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i], "political": just_tweets[idx][2],
 			"favorites": just_tweets[idx][3], "retweets": just_tweets[idx][4]})
 		total_sentiment += just_tweets[idx][1]["compound"]
+		if (just_tweets[idx][2]["Conservative"] + just_tweets[idx][2]["Libertarian"] < just_tweets[idx][2]["Liberal"] + just_tweets[idx][2]["Green"]):
+			num_dem += 1
 
-	return (final_lst, total_sentiment)
+	print("HELLLOOOOO", num_dem)
+	return (final_lst, total_sentiment, num_dem)
 
 @irsystem.route('/', methods=['GET'])
 def search():
@@ -287,7 +291,7 @@ def search():
 				data=data,
 		)
 	else:
-		output_message_politician = "Politician Name: " + politician_query 
+		output_message_politician = "Politician Name: " + politician_query
 		output_message_issue = "Issue: " + free_form_query
 		data = {
 			"politician": politician_query,
@@ -297,18 +301,18 @@ def search():
 			"votes": [],
 			"vote_score": 0.0
 		}
-		if politician_query:	
+		if politician_query:
 			donation_data = get_relevant_donations(politician_query, get_issue_list(free_form_query))
 
 			don_data = process_donations(donation_data, free_form_query)
 			data["donations"] = don_data
 
-			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
+			tweet_dict, total_sentiment, total_dem = process_tweets(politician_query, free_form_query, 10)
 
 			#return top 5 for now
 			if len(tweet_dict) != 0:
 				avg_sentiment = round(total_sentiment/10,2)
-				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment}
+				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment, 'pdem': total_dem * 10}
 
 			t0 = time.time()
 

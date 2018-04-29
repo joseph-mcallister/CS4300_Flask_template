@@ -207,21 +207,22 @@
            <div style="display:block" class="info-popup" id="tweets">
               {% if data["tweets"] %}
                  <h4 align="center">Top 10 Tweet Matches</h4>
+                 <h4>Based on tweets, we estimate {{ data["politician"] }} is {{ data["tweets"]["pdem"] }}% Democrat and {{ 100-data["tweets"]["pdem"] }}% Republican on the issue of {{ data["issue"] }}</h4>
                  {% if (data["tweets"]["avg_sentiment"] <= -0.05) %}
                  <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
                    <= -0.05 is negative<br>
                    Otherwise indicates neutral">
-                   <b>Overall, {{data["politician"]}} tweets negatively about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                   <b>{{data["politician"]}} tweets an average negative sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}"  </h5></b>
                  {% elif (data["tweets"]["avg_sentiment"] >= 0.05) %}
                  <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
                    <= -0.05 is negative<br>
                    Otherwise indicates neutral">
-                   <b>Overall, {{data["politician"]}} tweets positively about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                   <b>{{data["politician"]}} tweets an average positive sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5></b>
                  {% else %}
                  <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
                    <= -0.05 is negative<br>
                    Otherwise indicates neutral">
-                   <b>Overall, {{data["politician"]}} tweets neutrally about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                   <b>{{data["politician"]}} tweets an average neutral sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5></b>
                  {% endif %}
                  {% for tweet in data["tweets"]["tweet_dict"] %}
                  <div style="background-color: #e1e1ea; border-radius: 10px; padding:10px">
@@ -361,8 +362,9 @@
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    var pdem = 0;
-    var pdem2 = {{data["vote_scale"]}}*100;
+
+    var pdem = {{data["tweets"]["pdem"]}};
+    // var pdem2 = {{data["vote_scale"]}}*100;
     var pdem3 = {{data["donations"]["score"]}};
     $( '#tweet_meter' ).attr("style", "left: "+(-pdem + 50)+"%;")
     $( '#votes_meter' ).attr("style", "left: "+(-pdem2 + 50)+"%;")
@@ -385,8 +387,17 @@
     }
 
     $( '#tweet_align' ).text(pol_alignment(pdem))
-    $( '#votes_align' ).text(pol_alignment(pdem2))
+    // $( '#votes_align' ).text(pol_alignment(pdem2))
     $( '#donations_align' ).text(pol_alignment(pdem3))
+
+
+    if ({{ data["donations"]["sample"]|length}} > 0 ) {
+      console.log("we have donations data");
+    }
+    if ({{ data["tweets"]|length}} > 0 ) {
+      console.log("we have tweets data");
+    } else {console.log(":(")}
+
     </script>
 
   </body>
