@@ -161,8 +161,12 @@ def process_tweets(politician, query, n):
 	for tweet in tweets:
 		text = tweet['tweet_text']
 		sentiment = tweet['sentiment']
-		just_tweets.append((text, sentiment))
-		tokens = tokenizer_custom(text)
+		political = tweet["political"]
+		favorites = tweet["favorites_count"]
+		retweets = tweet["retweet_count"]
+		just_tweets.append((text, sentiment, political, favorites, retweets))
+		tokens = tweet["tokens"]
+		#weight tweets that contain all words of query most highly
 		sim_score = 0.0
 		for token in tokens:
 			if token in query_dict:
@@ -178,7 +182,8 @@ def process_tweets(politician, query, n):
 	total_sentiment = 0.0
 	for i in range(len(top_docs)):
 		idx = top_docs[i]
-		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i]})
+		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i], "poitical": just_tweets[idx][2],
+			"favorites": just_tweets[idx][3], "retweets": just_tweets[idx][4]})
 		total_sentiment += just_tweets[idx][1]["compound"]
 
 	return (final_lst, total_sentiment)
