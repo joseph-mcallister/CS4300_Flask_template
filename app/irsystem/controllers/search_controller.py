@@ -13,6 +13,7 @@ import numpy as np
 from sklearn.preprocessing import normalize
 from scipy.sparse import *
 import time 
+from bisect import bisect_left
 
 project_name = "Fundy"
 net_id = "Samantha Dimmer: sed87; James Cramer: jcc393; Dan Stoyell: dms524; Isabel Siergiej: is278; Joe McAllister: jlm493"
@@ -55,6 +56,28 @@ def get_issue_list(issue):
 	final = set(synonyms) | words
 
 	return final
+
+def binary_search(votes, politician):
+	first = 0
+	last = len(votes)-1
+	found = False
+	item = None
+	politician_name = politician.split()
+	politician_name_no_period = [a for a in politician_name if "." not in a][-1]
+
+	while first<=last and not found:
+		midpoint = (first + last)//2
+		if votes[midpoint]["PoliticianName"] == politician:
+			found = True
+			item = votes[midpoint]
+		else:
+			name = votes[midpoint]["PoliticianName"].split()
+			name_no_period = [a for a in name if "." not in a][-1]
+			if politician_name_no_period < name_no_period:
+				last = midpoint-1
+			else:
+				first = midpoint+1
+	return item
 
 
 # Calculate vote score based simply on if they voted yes or no on an issue
@@ -126,20 +149,19 @@ def process_votes(raw_vote_data, query, politician, data):
 			description = vote["vote"]["description"]
 			url = vote["vote"]["url"]
 			politician_vote = "Unknown"
-			for position in vote["vote"]["positions"]:
-				if position["PoliticianName"] == politician:
-					politician_vote = position["vote_position"]
-					if position["party"] == "R":
-						politician_party = "Republican"
-					elif position["party"] == "D":
-						politician_party = "Democrat"
-					else:
-						politician_party = "Independent"
-					democratic_votes = vote["vote"]["democratic"]
-					republican_votes = vote["vote"]["republican"]
-					independent_votes = vote["vote"]["independent"]
-					break
-			if position["vote_position"] != "Not Voting" and position["vote_position"] != "Present" and politician_vote != "Unknown":
+			position = binary_search(vote["vote"]["positions"], politician)
+			if position:
+				politician_vote = position["vote_position"]
+				if position["party"] == "R":
+					politician_party = "Republican"
+				elif position["party"] == "D":
+					politician_party = "Democrat"
+				else:
+					politician_party = "Independent"
+				democratic_votes = vote["vote"]["democratic"]
+				republican_votes = vote["vote"]["republican"]
+				independent_votes = vote["vote"]["independent"]
+			if position and position["vote_position"] != "Not Voting" and position["vote_position"] != "Present" and politician_vote != "Unknown":
 				data["votes"].append({"relevant_topic":relevant_topic, "url":url, "party":position["party"], "title":title, "description":description, "vote_position":politician_vote, "independent":independent_votes, "democratic":democratic_votes, "republican":republican_votes})
 	#Do basic scoring system where score is % of time vote with party
 	republican_vote_score = vote_score_agree_with_party(data["votes"], "R")
@@ -251,7 +273,6 @@ def search():
 			"vote_score": 0.0
 		}
 		if politician_query:	
-			print(get_issue_list(free_form_query))
 			donation_data = get_relevant_donations(politician_query, get_issue_list(free_form_query))
 
 			don_data = process_donations(donation_data)
@@ -264,9 +285,16 @@ def search():
 				avg_sentiment = round(total_sentiment/10,2)
 				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment}
 
+			t0 = time.time()
+
 			raw_vote_data = get_votes_by_politician(politician_query)
 			# Find all votes that have a subject that contains the issue typed in
 			data = process_votes(raw_vote_data, free_form_query, politician_query, data)
+
+			t1 = time.time()
+			total = t1-t0
+			print("TIMING: %d \n" % total)
+
 		if free_form_query:
 			pass
 			#print("Need to implement this")
