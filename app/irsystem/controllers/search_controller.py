@@ -182,7 +182,7 @@ def process_tweets(politician, query, n):
 	total_sentiment = 0.0
 	for i in range(len(top_docs)):
 		idx = top_docs[i]
-		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i], "poitical": just_tweets[idx][2],
+		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i], "political": just_tweets[idx][2],
 			"favorites": just_tweets[idx][3], "retweets": just_tweets[idx][4]})
 		total_sentiment += just_tweets[idx][1]["compound"]
 

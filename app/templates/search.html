@@ -38,6 +38,12 @@
 
   </head>
 
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+  </script>
+
   <body>
 
     <!-- Navigation -->
@@ -148,10 +154,34 @@
                  <h5>{{data["politician"]}} tweets an average sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5>
                  {% for tweet in data["tweets"]["tweet_dict"] %}
                  <div style="background-color: #e1e1ea; border-radius: 10px; padding:10px">
-                    <p>{{tweet["tweet"]}}<br>
-                    <b>Compound Sentiment:</b> {{'%0.2f' | format(tweet["sentiment"]["compound"])}}<br>
-                    <b>Retweets:</b> {{tweet["retweets"]}}<br>
-                    <b>Favorites:</b> {{tweet["favorites"]}}<br>
+                    <p>{{tweet["tweet"]}}</p>
+                    <div class="row">
+                      <div class="col-md-3">
+                      {% if (tweet["sentiment"]["compound"] <= -0.05) %}
+                        <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
+                          <b>Sentiment:</a></b> <a style="color: red">{{'%0.2f' | format(tweet["sentiment"]["compound"])}}</a><br>
+                      {% elif (tweet["sentiment"]["compound"] >= 0.05) %}
+                        <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
+                          <b>Sentiment:</a></b> <a style="color: green">{{'%0.2f' | format(tweet["sentiment"]["compound"])}}</a><br>
+                      {% else %}
+                        <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
+                          <b>Sentiment:</a></b> {{'%0.2f' | format(tweet["sentiment"]["compound"])}}<br>
+                      {% endif%}
+                      </div>
+                      <div class="col-md-3">
+                        <b>Retweets:</b> {{tweet["retweets"]}}<br>
+                      </div>
+                      <div class="col-md-3">
+                        <b>Favorites:</b> {{tweet["favorites"]}}<br>
+                      </div>
+                      <div class="col-md-3">
+                        {% if (tweet["political"]["Conservative"] + tweet["political"]["Libertarian"]) > (tweet["political"]["Liberal"] + tweet["political"]["Green"]) %}
+                          <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Liberal: {{'%0.2f' | format(tweet['political']['Liberal']*100)}} <br>% Green: {{'%0.2f' | format(tweet['political']['Green']*100)}} <br> % Conservative: {{'%0.2f' | format(tweet['political']['Conservative']*100)}} <br> % Libertarian: {{'%0.2f' | format(tweet['political']['Libertarian']*100)}}"><b>Political Analysis: </b></a>Republican
+                        {% else %}
+                          <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Liberal: {{'%0.2f' | format(tweet['political']['Liberal']*100)}} <br>% Green: {{'%0.2f' | format(tweet['political']['Green']*100)}} <br> % Conservative: {{'%0.2f' | format(tweet['political']['Conservative']*100)}} <br> % Libertarian: {{'%0.2f' | format(tweet['political']['Libertarian']*100)}}"><b>Political Analysis: </b></a>Democrat
+                        {% endif %}
+                      </div>
+                    </div>
                   </div>
                   <br>
                   {% endfor %}
