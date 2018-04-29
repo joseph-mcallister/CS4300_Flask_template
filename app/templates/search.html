@@ -51,6 +51,11 @@
       border-bottom: 12px solid black;
       bottom: -80%
     }
+
+    .col-centered {
+    float: none;
+    margin: 0 auto;
+    }
   </style>
   </head>
 
@@ -101,44 +106,67 @@
     <section style="margin-top:25px" class="results">
     <form class="form-inline global-search">
         <div style="margin: 0 auto; padding-bottom: 30px;">
-          <h2>{{output_message}}</h2>
+          <h2> On the issue of {{data["issue"]}}, {{data["politician"]}} aligns: </h2>
         </div>
     </form>
     <div class="container">
         {% if data %}
-         <div class="row">
              <!-- <div class="col-md-1"></div> -->
-             <div class="col-md-2">
-                 <div class = "simple-linear">
-                   <div id = "tweet_meter" class="arrow-up"></div>
-                 </div>
-                 <br>
-                 <div class="btn btn-block btn-lg btn-primary thingwewanttopad" onclick="showPopup('tweets')">
+             <div class="row">
+              <div class="col-md-1"></div>
+               <div class="col-md-2">
+                 <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('tweets')">
                      Tweets
                  </div>
-             </div>
-             <div class="col-md-3"></div>
-             <div class="col-md-2">
-                 <div class = "simple-linear">
-                   <div id = "votes_meter" class="arrow-up"></div>
+               </div>
+               <div class="col-md-6" align="center">
+                <div class = "simple-linear">
+                   <div id = "tweet_meter" class="arrow-up" ></div>
                  </div>
-                 <br>
-                 <div class="btn btn-block btn-lg btn-primary thingwewanttopad" onclick="showPopup('votes')">
+               </div>
+               <div class="col-md-2">
+                Leans blah
+               </div>
+               <div class="col-md-1"></div>
+             </div>
+             <br>
+             <div class="row">
+              <div class="col-md-1"></div>
+               <div class="col-md-2">
+                <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('votes')">
                      Votes
                  </div>
-             </div>
-             <div class="col-md-3"></div>
-             <div class="col-md-2">
-                 <div class = "simple-linear">
-                   <div id = "donations_meter" class="arrow-up"></div>
+               </div>
+               <div class="col-md-6" align="center">
+                <div class = "simple-linear">
+                   <div id = "votes_meter" class="arrow-up"></div>
                  </div>
-                 <br>
-                 <div class="btn btn-block btn-lg btn-primary thingwewanttopad" onclick="showPopup('donations')">
+               </div>
+               <div class="col-md-2">
+                Leans blah
+               </div>
+               <div class="col-md-1"></div>
+             </div>
+             <br>
+             <div class="row">
+              <div class="col-md-1"></div>
+               <div class="col-md-2">
+                <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('donations')">
                      Donations
                  </div>
+               </div>
+               <div class="col-md-6" align="center">
+                <div class = "simple-linear">
+                   <div id = "donations_meter" class="arrow-up"></div>
+                 </div>
+               </div>
+               <div class="col-md-2">
+                 Leans blah
+               </div>
+               <div class="col-md-1"></div>
              </div>
              <!-- <div class="col-md-1"></div> -->
-         </div>
+         
          <br>
          <div class="col-12 col-md-0">
            <div style="display:none" class="info-popup" id="donations">
@@ -288,9 +316,9 @@
 
     <script>
     // pos = 97 - %democrat
-    var pos = 97 - 0;
-    var pos2 = 97 - 37;
-    var pos3 = 97 - 92;
+    var pos = 0;
+    var pos2 = 0;
+    var pos3 = 0;
     $( '#tweet_meter' ).attr("style", "left: "+pos+"%;")
     $( '#votes_meter' ).attr("style", "left: "+pos2+"%;")
     $( '#donations_meter' ).attr("style", "left: "+pos3+"%;")
