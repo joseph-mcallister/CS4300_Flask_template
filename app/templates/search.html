@@ -36,6 +36,27 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="/static/main.js"></script>
 
+  <style>
+    .simple-linear {
+      width: 375px; height: 25px;
+      background: linear-gradient(to right, #007bff, #fd4e4e);
+      border-radius: 5px;
+    }
+    .arrow-up {
+      width: 0;
+      height: 0;
+      position:relative;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 12px solid black;
+      bottom: -80%
+    }
+
+    .col-centered {
+    float: none;
+    margin: 0 auto;
+    }
+  </style>
   </head>
 
   <script>
@@ -83,33 +104,65 @@
     </header>
 
     <section style="margin-top:25px" class="results">
-        <div align="center">
-          <h2>{{output_message_politician}}</h2>
-          <h2>{{output_message_issue}}</h2><br>
+    <form class="form-inline global-search">
+        <div style="margin: 0 auto; padding-bottom: 30px;">
+          <h2> On the issue of {{data["issue"]}}, {{data["politician"]}} aligns: </h2>
         </div>
     <div class="container">
         {% if data %}
-         <div class="row">
-             <div class="col-md-2"></div>
-             <div class="col-md-2">
+             <!-- <div class="col-md-1"></div> -->
+             <div class="row">
+              <div class="col-md-1"></div>
+               <div class="col-md-2">
                  <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('tweets')">
                      Tweets
                  </div>
+               </div>
+               <div class="col-md-6" align="center">
+                <div class = "simple-linear">
+                   <div id = "tweet_meter" class="arrow-up" ></div>
+                 </div>
+               </div>
+               <div id = "tweet_align" class="col-md-2">
+               </div>
+               <div class="col-md-1"></div>
              </div>
-             <div class="col-md-1"></div>
-             <div class="col-md-2">
-                 <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('votes')">
+             <br>
+             <div class="row">
+              <div class="col-md-1"></div>
+               <div class="col-md-2">
+                <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('votes')">
                      Votes
                  </div>
+               </div>
+               <div class="col-md-6" align="center">
+                <div class = "simple-linear">
+                   <div id = "votes_meter" class="arrow-up"></div>
+                 </div>
+               </div>
+               <div id = "votes_align" class="col-md-2">
+               </div>
+               <div class="col-md-1"></div>
              </div>
-             <div class="col-md-1"></div>
-             <div class="col-md-2">
-                 <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('donations')">
+             <br>
+             <div class="row">
+              <div class="col-md-1"></div>
+               <div class="col-md-2">
+                <div class="btn btn-block btn-lg btn-primary" onclick="showPopup('donations')">
                      Donations
                  </div>
+               </div>
+               <div class="col-md-6" align="center">
+                <div class = "simple-linear">
+                   <div id = "donations_meter" class="arrow-up"></div>
+                 </div>
+               </div>
+               <div id = "donations_align" class="col-md-2">
+               </div>
+               <div class="col-md-1"></div>
              </div>
-             <div class="col-md-2"></div>
-         </div>
+             <!-- <div class="col-md-1"></div> -->
+
          <br>
          <div class="col-12 col-md-0">
            <div style="display:none" class="info-popup" id="donations">
@@ -154,7 +207,22 @@
            <div style="display:block" class="info-popup" id="tweets">
               {% if data["tweets"] %}
                  <h3 align="center">Top 10 Tweet Matches</h3>
-                 <h5>{{data["politician"]}} tweets an average sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5>
+                 {% if (data["tweets"]["avg_sentiment"] <= -0.05) %}
+                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   otherwise, neutral">
+                   <b>Overall, {{data["politician"]}} tweets negatively about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                 {% elif (data["tweets"]["avg_sentiment"] >= 0.05) %}
+                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   otherwise, neutral">
+                   <b>Overall, {{data["politician"]}} tweets positively about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                 {% else %}
+                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   otherwise, neutral">
+                   <b>Overall, {{data["politician"]}} tweets neutrally about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                 {% endif %}
                  {% for tweet in data["tweets"]["tweet_dict"] %}
                  <div style="background-color: #e1e1ea; border-radius: 10px; padding:10px">
                     <p>{{tweet["tweet"]}}</p>
@@ -227,7 +295,7 @@
                         <p> Title of bill: {{vote["title"]}} </p>
                         <p> Description of bill: {{vote["description"]}} </p>
                         <p> Topic related to issue: {{vote["relevant_topic"]}} </p>
-                        <p> {{ data["politician"] }} position on bill: {{vote["vote_position"]}} </p> 
+                        <p> {{ data["politician"] }} position on bill: {{vote["vote_position"]}} </p>
                         <p> Democratic votes on bill: Yes votes: {{vote["democratic"]["yes"]}} No votes: {{vote["democratic"]["no"]}} </p>
                         <p> Republican votes on bill: Yes votes: {{vote["republican"]["yes"]}} No votes: {{vote["republican"]["no"]}} </p>
                         <a href='{{vote["url"]}}'>Click here for more info about the bill</a><br> <br>
@@ -291,6 +359,35 @@
     <!-- Bootstrap core JavaScript -->
     <script src="../static/vendor/jquery/jquery.min.js"></script>
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    var pdem = 0;
+    var pdem2 = 50;
+    var pdem3 = {{data["donations"]["score"]}};
+    $( '#tweet_meter' ).attr("style", "left: "+(-pdem + 50)+"%;")
+    $( '#votes_meter' ).attr("style", "left: "+(-pdem2 + 50)+"%;")
+    $( '#donations_meter' ).attr("style", "left: "+(-pdem3 + 50)+"%;")
+
+    var pol_alignment = function(pdem){
+      if (pdem < 20){
+        return "Strong Republican"
+      }
+      else if (pdem < 40){
+        return "Lean Republican"
+      }
+      else if (pdem < 60){
+        return "Moderate"
+      }
+      else if (pdem < 80){
+        return "Lean Democrat"
+      }
+      else return "Strong Democrat"
+    }
+
+    $( '#tweet_align' ).text(pol_alignment(pdem))
+    $( '#votes_align' ).text(pol_alignment(pdem2))
+    $( '#donations_align' ).text(pol_alignment(pdem3))
+    </script>
 
   </body>
 
