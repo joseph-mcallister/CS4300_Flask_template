@@ -124,8 +124,7 @@
                    <div id = "tweet_meter" class="arrow-up" ></div>
                  </div>
                </div>
-               <div class="col-md-2">
-                Leans blah
+               <div id = "tweet_align" class="col-md-2">
                </div>
                <div class="col-md-1"></div>
              </div>
@@ -142,8 +141,7 @@
                    <div id = "votes_meter" class="arrow-up"></div>
                  </div>
                </div>
-               <div class="col-md-2">
-                Leans blah
+               <div id = "votes_align" class="col-md-2">
                </div>
                <div class="col-md-1"></div>
              </div>
@@ -160,13 +158,12 @@
                    <div id = "donations_meter" class="arrow-up"></div>
                  </div>
                </div>
-               <div class="col-md-2">
-                 Leans blah
+               <div id = "donations_align" class="col-md-2">
                </div>
                <div class="col-md-1"></div>
              </div>
              <!-- <div class="col-md-1"></div> -->
-         
+
          <br>
          <div class="col-12 col-md-0">
            <div style="display:none" class="info-popup" id="donations">
@@ -315,13 +312,32 @@
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    // pos = 97 - %democrat
-    var pos = 0;
-    var pos2 = 0;
-    var pos3 = 0;
-    $( '#tweet_meter' ).attr("style", "left: "+pos+"%;")
-    $( '#votes_meter' ).attr("style", "left: "+pos2+"%;")
-    $( '#donations_meter' ).attr("style", "left: "+pos3+"%;")
+    var pdem = 0;
+    var pdem2 = 50;
+    var pdem3 = {{data["donations"]["score"]}};
+    $( '#tweet_meter' ).attr("style", "left: "+(-pdem + 50)+"%;")
+    $( '#votes_meter' ).attr("style", "left: "+(-pdem2 + 50)+"%;")
+    $( '#donations_meter' ).attr("style", "left: "+(-pdem3 + 50)+"%;")
+
+    var pol_alignment = function(pdem){
+      if (pdem < 20){
+        return "Strong Republican"
+      }
+      else if (pdem < 40){
+        return "Lean Republican"
+      }
+      else if (pdem < 60){
+        return "Moderate"
+      }
+      else if (pdem < 80){
+        return "Lean Democrat"
+      }
+      else return "Strong Democrat"
+    }
+
+    $( '#tweet_align' ).text(pol_alignment(pdem))
+    $( '#votes_align' ).text(pol_alignment(pdem2))
+    $( '#donations_align' ).text(pol_alignment(pdem3))
     </script>
 
   </body>
