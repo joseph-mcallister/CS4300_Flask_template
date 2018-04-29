@@ -114,6 +114,7 @@
          <br>
          <div class="col-12 col-md-0">
            <div style="display:none" class="info-popup" id="donations">
+                {% if data["donations"]["sample"]|length > 0 %}
                 <h4>Based on donations, we estimate {{ data["politician"] }} is {{ data["donations"]["score"] }}% Democrat and {{ 100-data["donations"]["score"] }}% Republican on the issue of {{ data["issue"] }}</h4>
                 <h4>{{ data["politician"] }} has received ${{ data["donations"]["total"] }} from organizations related to {{ data["issue"] }}</h4>
                 <table class="table">
@@ -147,6 +148,9 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% else %}
+                <h3>We were unable to find donations for {{ data["politician"] }} relevant to {{data["issue"]}}</h3>
+                {% endif %}
            </div>
            <div style="display:block" class="info-popup" id="tweets">
               {% if data["tweets"] %}
