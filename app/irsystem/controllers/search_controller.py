@@ -188,6 +188,7 @@ def process_votes(raw_vote_data, query, politician, data):
 	data["vote_score_republican"] = republican_vote_score
 	data["vote_score_democrat"] = democrat_vote_score
 	data["party"] = politician_party
+	data["vote_scale"] = democrat_vote_score/(republican_vote_score+democrat_vote_score)
 	return data
 	
 def tokenizer_custom(tweet):
