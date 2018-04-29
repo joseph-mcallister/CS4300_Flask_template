@@ -1,6 +1,14 @@
 .results {
   padding-top:25px;
 }
+
+.tooltips {
+  color: #007bff;
+}
+
+.tooltips: hover {
+  color: #0056b3
+}
 /* @media (min-width: 1200px) {
 	.container {
 	    max-width: 970px;
