@@ -108,7 +108,6 @@
         <div style="margin: 0 auto; padding-bottom: 30px;">
           <h2> On the issue of {{data["issue"]}}, {{data["politician"]}} aligns: </h2>
         </div>
-    </form>
     <div class="container">
         {% if data %}
              <!-- <div class="col-md-1"></div> -->
@@ -167,6 +166,7 @@
          <br>
          <div class="col-12 col-md-0">
            <div style="display:none" class="info-popup" id="donations">
+                {% if data["donations"]["sample"]|length > 0 %}
                 <h4>Based on donations, we estimate {{ data["politician"] }} is {{ data["donations"]["score"] }}% Democrat and {{ 100-data["donations"]["score"] }}% Republican on the issue of {{ data["issue"] }}</h4>
                 <h4>{{ data["politician"] }} has received ${{ data["donations"]["total"] }} from organizations related to {{ data["issue"] }}</h4>
                 <table class="table">
@@ -200,24 +200,42 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% else %}
+                <h3>We were unable to find donations for {{ data["politician"] }} relevant to {{data["issue"]}}</h3>
+                {% endif %}
            </div>
            <div style="display:block" class="info-popup" id="tweets">
               {% if data["tweets"] %}
                  <h3 align="center">Top 10 Tweet Matches</h3>
-                 <h5>{{data["politician"]}} tweets an average sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5>
+                 {% if (data["tweets"]["avg_sentiment"] <= -0.05) %}
+                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   otherwise, neutral">
+                   <b>Overall, {{data["politician"]}} tweets negatively about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                 {% elif (data["tweets"]["avg_sentiment"] >= 0.05) %}
+                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   otherwise, neutral">
+                   <b>Overall, {{data["politician"]}} tweets positively about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                 {% else %}
+                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   otherwise, neutral">
+                   <b>Overall, {{data["politician"]}} tweets neutrally about "{{data["issue"]}}," with an average sentiment of {{data["tweets"]["avg_sentiment"]}}. </h5></b>
+                 {% endif %}
                  {% for tweet in data["tweets"]["tweet_dict"] %}
                  <div style="background-color: #e1e1ea; border-radius: 10px; padding:10px">
                     <p>{{tweet["tweet"]}}</p>
                     <div class="row">
                       <div class="col-md-3">
                       {% if (tweet["sentiment"]["compound"] <= -0.05) %}
-                        <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
+                        <a href="#ttip" class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
                           <b>Sentiment:</a></b> <a style="color: red">{{'%0.2f' | format(tweet["sentiment"]["compound"])}}</a><br>
                       {% elif (tweet["sentiment"]["compound"] >= 0.05) %}
-                        <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
+                        <a href="#ttip" class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
                           <b>Sentiment:</a></b> <a style="color: green">{{'%0.2f' | format(tweet["sentiment"]["compound"])}}</a><br>
                       {% else %}
-                        <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
+                        <a href="#ttip" class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Negative: {{'%0.2f' | format(tweet['sentiment']['neg']*100)}} <br>% Positive: {{'%0.2f' | format(tweet['sentiment']['pos']*100)}} <br> % Neutral: {{'%0.2f' | format(tweet['sentiment']['neu']*100)}}">
                           <b>Sentiment:</a></b> {{'%0.2f' | format(tweet["sentiment"]["compound"])}}<br>
                       {% endif%}
                       </div>
@@ -229,9 +247,9 @@
                       </div>
                       <div class="col-md-3">
                         {% if (tweet["political"]["Conservative"] + tweet["political"]["Libertarian"]) > (tweet["political"]["Liberal"] + tweet["political"]["Green"]) %}
-                          <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Liberal: {{'%0.2f' | format(tweet['political']['Liberal']*100)}} <br>% Green: {{'%0.2f' | format(tweet['political']['Green']*100)}} <br> % Conservative: {{'%0.2f' | format(tweet['political']['Conservative']*100)}} <br> % Libertarian: {{'%0.2f' | format(tweet['political']['Libertarian']*100)}}"><b>Political Analysis: </b></a>Republican
+                          <a href="#ttip" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Liberal: {{'%0.2f' | format(tweet['political']['Liberal']*100)}} <br>% Green: {{'%0.2f' | format(tweet['political']['Green']*100)}} <br> % Conservative: {{'%0.2f' | format(tweet['political']['Conservative']*100)}} <br> % Libertarian: {{'%0.2f' | format(tweet['political']['Libertarian']*100)}}"><b>Political Analysis: </b></a>Republican
                         {% else %}
-                          <a href="" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Liberal: {{'%0.2f' | format(tweet['political']['Liberal']*100)}} <br>% Green: {{'%0.2f' | format(tweet['political']['Green']*100)}} <br> % Conservative: {{'%0.2f' | format(tweet['political']['Conservative']*100)}} <br> % Libertarian: {{'%0.2f' | format(tweet['political']['Libertarian']*100)}}"><b>Political Analysis: </b></a>Democrat
+                          <a href="#ttip" data-toggle="tooltip" data-html="true" data-placement="bottom" title="% Liberal: {{'%0.2f' | format(tweet['political']['Liberal']*100)}} <br>% Green: {{'%0.2f' | format(tweet['political']['Green']*100)}} <br> % Conservative: {{'%0.2f' | format(tweet['political']['Conservative']*100)}} <br> % Libertarian: {{'%0.2f' | format(tweet['political']['Libertarian']*100)}}"><b>Political Analysis: </b></a>Democrat
                         {% endif %}
                       </div>
                     </div>
@@ -243,17 +261,48 @@
               {% endif %}
            </div>
            <div style="display:none" class="info-popup" id="votes">
-               <h4>Sample Vote Data</h4>
                {% if data["votes"] %}
                     <br>
-                    <h2 class="">{{ data["politician"] }} votes with party {{ data["vote_score"]}}% of the time</h2> <br>
+                    <h2 class="">{{ data["party"] }} {{ data["politician"] }} votes with {{ data["vote_score_democrat"]}}% of Democrats and {{ data["vote_score_republican"]}}% of Republicans on the issue of {{ data["issue"] }}</h2> <br>
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bill Title</th>
+                            <th>Bill Description</th>
+                            <th>Related Topic</th>
+                            <th>{{ data["politician"] }} position</th>
+                            <th>Democratic votes</th>
+                            <th>Republican votes</th>
+                            <th>URL for more info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vote in data["votes"] %}
+                            <tr>
+                                <td>{{vote["title"]}}</td>
+                                <td>{{vote["description"]}}</td>
+                                <td>{{vote["relevant_topic"]}}</td>
+                                <td>{{vote["vote_position"]}}</td>
+                                <td>Yes: {{vote["democratic"]["yes"]}} <br> No: {{vote["democratic"]["no"]}}</td>
+                                <td>Yes: {{vote["republican"]["yes"]}} <br> No: {{vote["republican"]["no"]}}</td>
+                                <td><a href='{{vote["url"]}}'>Link</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+<!--
                     {% for vote in data["votes"] %}
-                        <p> Title/Description of bill: {{vote["title"]}} </p>
+                        <p> Title of bill: {{vote["title"]}} </p>
+                        <p> Description of bill: {{vote["description"]}} </p>
                         <p> Topic related to issue: {{vote["relevant_topic"]}} </p>
-                        <p> Position on bill: {{vote["vote_position"]}} </p> <br> <br>
+                        <p> {{ data["politician"] }} position on bill: {{vote["vote_position"]}} </p>
+                        <p> Democratic votes on bill: Yes votes: {{vote["democratic"]["yes"]}} No votes: {{vote["democratic"]["no"]}} </p>
+                        <p> Republican votes on bill: Yes votes: {{vote["republican"]["yes"]}} No votes: {{vote["republican"]["no"]}} </p>
+                        <a href='{{vote["url"]}}'>Click here for more info about the bill</a><br> <br>
                     {% endfor %}
+-->
                {% else %}
-                    <h2> This politician has not voted on this issue. </h2>
+                    <h2> {{ data["politician"] }} has not voted on this issue. </h2>
                {% endif %}
            </div>
        </div>

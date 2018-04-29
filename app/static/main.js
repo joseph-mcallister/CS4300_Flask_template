@@ -15,9 +15,7 @@ function prepChart(id, dem, rep) {
 }
 
 function drawCharts() {
-  console.log(charts_to_make);
   for (l of charts_to_make) {
-    console.log("making chart");
     var data = google.visualization.arrayToDataTable([
       ['Party', 'Amount'],
       ['Democrat', l[1]],
