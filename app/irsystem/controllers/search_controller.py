@@ -17,11 +17,16 @@ import time
 project_name = "Fundy"
 net_id = "Samantha Dimmer: sed87; James Cramer: jcc393; Dan Stoyell: dms524; Isabel Siergiej: is278; Joe McAllister: jlm493"
 
-def process_donations(donations):
+def process_donations(donations, issue):
+	stemmer = PorterStemmer()
+	words = set([stemmer.stem(w.lower()) for w in issue.split(" ")]) - set(nltkCorp.stopwords.words('english'))
+
 	total = 0
 	donations_list = []
 	donations = list(donations)
 	position_score = 0
+	direct_matches = []
+
 	for don in donations:
 		don["org_data"] = get_org_data(don["DonorOrganization"])
 		don["TransactionAmount"] = int(don["TransactionAmount"])
@@ -29,16 +34,32 @@ def process_donations(donations):
 		donations_list.append(don)
 		total += don["TransactionAmount"]
 
-		position_score += float(don["org_data"]["democrat_total"]) / (float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]))
+		found = False
+		for word in words:
+			if word in don["DonorOrganization"].lower():
+				found = True
+		if found:
+			direct_matches.append(don)
+
+		if float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]) > 0:
+			position_score += float(don["org_data"]["democrat_total"]) / (float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]))
 
 	if len(donations_list) > 0:
 		position_score = round(position_score/len(donations_list)*100, 2)
 	else:
 		position_score = 50.00
 
+	print(len(direct_matches))
+
+	if len(direct_matches) <= 10:
+		sample = sorted(direct_matches, key=lambda d:d["TransactionAmount"], reverse=True)
+		sample += sorted(donations_list, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(donations_list), 10-len(sample))]
+	else:
+		sample = sorted(direct_matches[:10], key=lambda d:d["TransactionAmount"], reverse=True)
+
 	return {
 		"total": total,
-		"sample": sorted(donations_list, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(donations_list), 10)],
+		"sample": sample,
 		"score": position_score,
 	}
 
@@ -204,8 +225,12 @@ def process_tweets(politician, query, n):
 	for tweet in tweets:
 		text = tweet['tweet_text']
 		sentiment = tweet['sentiment']
-		just_tweets.append((text, sentiment))
-		tokens = tokenizer_custom(text)
+		political = tweet["political"]
+		favorites = tweet["favorites_count"]
+		retweets = tweet["retweet_count"]
+		just_tweets.append((text, sentiment, political, favorites, retweets))
+		tokens = tweet["tokens"]
+		#weight tweets that contain all words of query most highly
 		sim_score = 0.0
 		for token in tokens:
 			if token in query_dict:
@@ -221,7 +246,8 @@ def process_tweets(politician, query, n):
 	total_sentiment = 0.0
 	for i in range(len(top_docs)):
 		idx = top_docs[i]
-		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i]})
+		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i], "political": just_tweets[idx][2],
+			"favorites": just_tweets[idx][3], "retweets": just_tweets[idx][4]})
 		total_sentiment += just_tweets[idx][1]["compound"]
 
 	return (final_lst, total_sentiment)
@@ -254,7 +280,7 @@ def search():
 			print(get_issue_list(free_form_query))
 			donation_data = get_relevant_donations(politician_query, get_issue_list(free_form_query))
 
-			don_data = process_donations(donation_data)
+			don_data = process_donations(donation_data, free_form_query)
 			data["donations"] = don_data
 
 			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
