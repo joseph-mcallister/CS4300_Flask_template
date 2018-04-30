@@ -105,11 +105,31 @@
 
     <section style="margin-top:25px" class="results">
     <form class="form-inline global-search">
-        <div style="margin: 0 auto; padding-bottom: 30px;">
-          <h4> Based on tweets, votes, and donations related to "{{data["issue"]}}", {{data["politician"]}} ({{data["party"]}}) appears to align: </h4>
-        </div>
+        
     <div class="container">
         {% if data %}
+          {% if data["tweets"] %}
+            <meta id="pdem" data-data="{{data['tweets']['pdem']}}">
+          {% else %}
+            <meta id="pdem" data-data="-1">
+          {% endif %}
+          {% if data["votes"] %}
+            <meta id="pdem2" data-data="{{data['vote_scale']}}">
+          {% else %}
+            <meta id="pdem2" data-data="-1">
+          {% endif %}
+          {% if data["donations"]["sample"] %}
+            <meta id="pdem3" data-data="{{data['donations']['score']}}">
+          {% else %}
+            <meta id="pdem3" data-data="-1">
+          {% endif %}
+        <div style="margin: 0 auto; padding-bottom: 30px;">
+          {% if data["party"] == "Unknown" %}
+            <h4> Based on tweets, votes, and donations related to "{{data["issue"]}}", {{data["politician"]}} appears to align: </h4>
+          {% else %}
+            <h4> Based on tweets, votes, and donations related to "{{data["issue"]}}", {{data["politician"]}} ({{data["party"]}}) appears to align: </h4>
+          {% endif %}
+        </div>
              <div class="row">
               <div class="col-md-1"></div>
               <div class="col-md-2" style="font-size: 12px">
@@ -356,21 +376,6 @@
         </div>
       </div>
     </section>
-    {% if data["tweets"] %}
-      <meta id="pdem" data-data="{{data['tweets']['pdem']}}">
-    {% else %}
-      <meta id="pdem" data-data="-1">
-    {% endif %}
-    {% if data["votes"] %}
-      <meta id="pdem2" data-data="{{data['vote_scale']}}">
-    {% else %}
-      <meta id="pdem2" data-data="-1">
-    {% endif %}
-    {% if data["donations"]["sample"] | length > 0 %}
-      <meta id="pdem3" data-data="{{data['donations']['score']}}">
-    {% else %}
-      <meta id="pdem3" data-data="-1">
-    {% endif %}
 
     <!-- Bootstrap core JavaScript -->
     <script src="../static/vendor/jquery/jquery.min.js"></script>

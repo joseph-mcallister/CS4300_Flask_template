@@ -187,7 +187,7 @@ def process_votes(raw_vote_data, query, politician, data):
 	democrat_vote_score = vote_score_agree_with_party(data["votes"], "D")
 	data["vote_score_republican"] = republican_vote_score
 	data["vote_score_democrat"] = democrat_vote_score
-	# data["party"] = politician_party
+	data["party"] = politician_party
 	if republican_vote_score == 0 and democrat_vote_score == 0:
 		data["vote_scale"] = .5
 	else:
@@ -215,21 +215,10 @@ def tokenizer_custom(tweet):
     return tokens
 
 #return (top n tweet indices, n top tweet scores)
-def process_tweets(politician, query, n, data):
+def process_tweets(politician, query, n):
 	tweets = get_tweets_by_politician(politician)
 	vocab = json.load((open("app/irsystem/models/vocab.json", 'r')))['vocab']
 	query_tokens = tokenizer_custom(query)
-
-	#get party
-	first_tweet = tweets[0]
-	if "Democrat" in first_tweet["array_agg"]:
-		politician_party = "Democrat"
-	elif "Republican" in first_tweet["array_agg"]:
-		politician_party = "Republican"
-	else:
-		politician_party= "Independent"
-
-	data["party"] = politician_party
 
     #check query validity before proceeding
 	valid_query = False
@@ -320,7 +309,7 @@ def search():
 			don_data = process_donations(donation_data, free_form_query)
 			data["donations"] = don_data
 
-			tweet_dict, total_sentiment, total_dem = process_tweets(politician_query, free_form_query, 10, data)
+			tweet_dict, total_sentiment, total_dem = process_tweets(politician_query, free_form_query, 10)
 
 			#return top 5 for now
 			if len(tweet_dict) != 0:
