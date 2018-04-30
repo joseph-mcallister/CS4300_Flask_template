@@ -124,7 +124,7 @@
             <meta id="pdem3" data-data="-1">
           {% endif %}
         <div style="margin: 0 auto; padding-bottom: 30px;">
-          {% if data["party"] == "Unknown" %}
+          {% if not data["party"] %}
             <h4> Based on tweets, votes, and donations related to "{{data["issue"]}}", {{data["politician"]}} appears to align: </h4>
           {% else %}
             <h4> Based on tweets, votes, and donations related to "{{data["issue"]}}", {{data["politician"]}} ({{data["party"]}}) appears to align: </h4>

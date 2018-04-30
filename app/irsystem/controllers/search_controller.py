@@ -187,7 +187,7 @@ def process_votes(raw_vote_data, query, politician, data):
 	democrat_vote_score = vote_score_agree_with_party(data["votes"], "D")
 	data["vote_score_republican"] = republican_vote_score
 	data["vote_score_democrat"] = democrat_vote_score
-	data["party"] = politician_party
+	# data["party"] = politician_party
 	if republican_vote_score == 0 and democrat_vote_score == 0:
 		data["vote_scale"] = .5
 	else:
@@ -215,7 +215,7 @@ def tokenizer_custom(tweet):
     return tokens
 
 #return (top n tweet indices, n top tweet scores)
-def process_tweets(politician, query, n):
+def process_tweets(politician, query, n, data):
 	tweets = get_tweets_by_politician(politician)
 	vocab = json.load((open("app/irsystem/models/vocab.json", 'r')))['vocab']
 	query_tokens = tokenizer_custom(query)
@@ -246,7 +246,18 @@ def process_tweets(politician, query, n):
 	#get similarity for each tweet
 	sim_scores = []
 	just_tweets = []
+	party_found = 0
 	for tweet in tweets:
+		#get party
+		if not party_found:
+			iteration = True
+			if "Democrat" in tweet["array_agg"]:
+				politician_party = "Democrat"
+			elif "Republican" in tweet["array_agg"]:
+				politician_party = "Republican"
+			else:
+				politician_party= "Independent"
+
 		text = tweet['tweet_text']
 		sentiment = tweet['sentiment']
 		political = tweet["political"]
@@ -260,6 +271,9 @@ def process_tweets(politician, query, n):
 			if token in query_dict:
 				sim_score += query_dict[token]
 		sim_scores.append(sim_score)
+
+	print(politician_party)
+	data["party"] = politician_party
 
 	sim_scores = np.array(sim_scores)
 
@@ -309,7 +323,7 @@ def search():
 			don_data = process_donations(donation_data, free_form_query)
 			data["donations"] = don_data
 
-			tweet_dict, total_sentiment, total_dem = process_tweets(politician_query, free_form_query, 10)
+			tweet_dict, total_sentiment, total_dem = process_tweets(politician_query, free_form_query, 10, data)
 
 			#return top 5 for now
 			if len(tweet_dict) != 0:
