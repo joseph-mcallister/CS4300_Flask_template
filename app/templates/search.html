@@ -106,11 +106,19 @@
     <section style="margin-top:25px" class="results">
     <form class="form-inline global-search">
         <div style="margin: 0 auto; padding-bottom: 30px;">
-          <h2> On the issue of {{data["issue"]}}, {{data["politician"]}} aligns: </h2>
+          <h4> Based on tweets, votes, and donations related to "{{data["issue"]}}", {{data["politician"]}} ({{data["party"]}}) appears to align: </h4>
         </div>
     <div class="container">
         {% if data %}
-             <!-- <div class="col-md-1"></div> -->
+             <div class="row">
+              <div class="col-md-1"></div>
+              <div class="col-md-2" style="font-size: 12px">
+                Click any tab for more info
+              </div>
+              <div class="col-md-6"></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-1"></div>
+             </div>
              <div class="row">
               <div class="col-md-1"></div>
                <div class="col-md-2">
@@ -161,14 +169,13 @@
                </div>
                <div class="col-md-1"></div>
              </div>
-             <!-- <div class="col-md-1"></div> -->
 
+         <br>
          <br>
          <div class="col-12 col-md-0">
            <div style="display:none" class="info-popup" id="donations">
                 {% if data["donations"]["sample"]|length > 0 %}
-                <h4>Based on donations, we estimate {{ data["politician"] }} is {{ data["donations"]["score"] }}% Democrat and {{ 100-data["donations"]["score"] }}% Republican on the issue of {{ data["issue"] }}</h4>
-                <h4>{{ data["politician"] }} has received ${{ data["donations"]["total"] }} from organizations related to {{ data["issue"] }}</h4>
+                <h4 align="center">Top Donation Results</h4>
                 <table class="table">
                     <thead>
                         <tr>
@@ -200,30 +207,15 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <h5 align="left">Based on donations, we estimate {{ data["politician"] }} is {{ data["donations"]["score"] }}% Democrat and {{ 100-data["donations"]["score"] }}% Republican on the issue of {{ data["issue"] }}.</h5>
+                <h5 align="left">{{ data["politician"] }} has received ${{ data["donations"]["total"] }} from organizations related to {{ data["issue"] }}.</h5>
                 {% else %}
-                <h3>We were unable to find donations for {{ data["politician"] }} relevant to {{data["issue"]}}</h3>
+                <h3>We were unable to find donations for {{ data["politician"] }} relevant to {{data["issue"]}}.</h3>
                 {% endif %}
            </div>
            <div style="display:block" class="info-popup" id="tweets">
               {% if data["tweets"] %}
-                 <h4 align="center">Top 10 Tweet Matches</h4>
-                 <h4>Based on tweets, we estimate {{ data["politician"] }} is {{ data["tweets"]["pdem"] }}% Democrat and {{ 100-data["tweets"]["pdem"] }}% Republican on the issue of {{ data["issue"] }}</h4>
-                 {% if (data["tweets"]["avg_sentiment"] <= -0.05) %}
-                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
-                   <= -0.05 is negative<br>
-                   Otherwise indicates neutral">
-                   <b>{{data["politician"]}} tweets an average negative sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}"  </h5></b>
-                 {% elif (data["tweets"]["avg_sentiment"] >= 0.05) %}
-                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
-                   <= -0.05 is negative<br>
-                   Otherwise indicates neutral">
-                   <b>{{data["politician"]}} tweets an average positive sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5></b>
-                 {% else %}
-                 <h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
-                   <= -0.05 is negative<br>
-                   Otherwise indicates neutral">
-                   <b>{{data["politician"]}} tweets an average neutral sentiment of {{data["tweets"]["avg_sentiment"]}} for "{{data["issue"]}}" </h5></b>
-                 {% endif %}
+                  <h4 align="center">Top 10 Tweet Results</h4>
                  {% for tweet in data["tweets"]["tweet_dict"] %}
                  <div style="background-color: #e1e1ea; border-radius: 10px; padding:10px">
                     <p>{{tweet["tweet"]}}</p>
@@ -258,13 +250,31 @@
                   <br>
                   {% endfor %}
               {% else %}
-                  <h3> This politician has not tweeted about this issue. </h3>
+                  <h3> We were unable to find tweets for {{ data["politician"] }} relevant to {{data["issue"]}}. </h3>
+              {% endif %}
+              {% if data["tweets"] %}
+                 <h5 align="left">Based on tweets, we estimate {{ data["politician"] }} is {{ data["tweets"]["pdem"] }}% Democrat and {{ 100-data["tweets"]["pdem"] }}% Republican on the issue of {{ data["issue"] }}.</h5>
+                 {% if (data["tweets"]["avg_sentiment"] <= -0.05) %}
+                 <a href="#ttip"><h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   Otherwise indicates neutral">
+                   <b>{{data["politician"]}} tweets an average negative sentiment of {{data["tweets"]["avg_sentiment"]}} on the issue of {{data["issue"]}}.  </h5></a></b>
+                 {% elif (data["tweets"]["avg_sentiment"] >= 0.05) %}
+                 <a href="#ttip"><h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   Otherwise indicates neutral">
+                   <b>{{data["politician"]}} tweets an average positive sentiment of {{data["tweets"]["avg_sentiment"]}} on the issue of {{data["issue"]}}. </h5></a></b>
+                 {% else %}
+                 <a href="#ttip"><h5 class="tooltips" data-toggle="tooltip" data-html="true" data-placement="bottom" title=">= 0.05 is positive<br>
+                   <= -0.05 is negative<br>
+                   Otherwise indicates neutral">
+                   <b>{{data["politician"]}} tweets an average neutral sentiment of {{data["tweets"]["avg_sentiment"]}} on the issue of {{data["issue"]}}. </h5></a></b>
+                 {% endif %}
               {% endif %}
            </div>
            <div style="display:none" class="info-popup" id="votes">
                {% if data["votes"] %}
-                    <br>
-                    <h4 class="">{{ data["party"] }} {{ data["politician"] }} votes with {{ data["vote_score_democrat"]}}% of Democrats and {{ data["vote_score_republican"]}}% of Republicans on the issue of {{ data["issue"] }}</h4> <br>
+                    <h4 align="center">Top Vote Results</h4>
                     <table class="table">
                     <thead>
                         <tr>
@@ -291,19 +301,9 @@
                         {% endfor %}
                     </tbody>
                 </table>
-<!--
-                    {% for vote in data["votes"] %}
-                        <p> Title of bill: {{vote["title"]}} </p>
-                        <p> Description of bill: {{vote["description"]}} </p>
-                        <p> Topic related to issue: {{vote["relevant_topic"]}} </p>
-                        <p> {{ data["politician"] }} position on bill: {{vote["vote_position"]}} </p>
-                        <p> Democratic votes on bill: Yes votes: {{vote["democratic"]["yes"]}} No votes: {{vote["democratic"]["no"]}} </p>
-                        <p> Republican votes on bill: Yes votes: {{vote["republican"]["yes"]}} No votes: {{vote["republican"]["no"]}} </p>
-                        <a href='{{vote["url"]}}'>Click here for more info about the bill</a><br> <br>
-                    {% endfor %}
--->
+                <h5 align="left">{{ data["politician"] }} votes with {{ data["vote_score_democrat"]}}% of Democrats and {{ data["vote_score_republican"]}}% of Republicans on the issue of {{ data["issue"] }}.</h5>
                {% else %}
-                    <h2> {{ data["politician"] }} has not voted on this issue. </h2>
+                    <h3> We were unable to find votes for {{ data["politician"] }} relevant to {{data["issue"]}}. </h3>
                {% endif %}
            </div>
        </div>
@@ -356,21 +356,55 @@
         </div>
       </div>
     </section>
+    {% if data["tweets"] %}
+      <meta id="pdem" data-data="{{data['tweets']['pdem']}}">
+    {% else %}
+      <meta id="pdem" data-data="-1">
+    {% endif %}
+    {% if data["votes"] %}
+      <meta id="pdem2" data-data="{{data['vote_scale']}}">
+    {% else %}
+      <meta id="pdem2" data-data="-1">
+    {% endif %}
+    {% if data["donations"]["sample"] | length > 0 %}
+      <meta id="pdem3" data-data="{{data['donations']['score']}}">
+    {% else %}
+      <meta id="pdem3" data-data="-1">
+    {% endif %}
 
     <!-- Bootstrap core JavaScript -->
     <script src="../static/vendor/jquery/jquery.min.js"></script>
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    var pdem = $('#pdem').data("data");
+    var pdem2 = $('#pdem2').data("data") * 100;
+    var pdem3 = $('#pdem3').data("data");
 
-    var pdem = {{data["tweets"]["pdem"]}};
-    // var pdem2 = {{data["vote_scale"]}}*100;
-    var pdem3 = {{data["donations"]["score"]}};
-    $( '#tweet_meter' ).attr("style", "left: "+(-pdem + 50)+"%;")
-    $( '#votes_meter' ).attr("style", "left: "+(-pdem2 + 50)+"%;")
-    $( '#donations_meter' ).attr("style", "left: "+(-pdem3 + 50)+"%;")
+    
+    if (pdem < 0){
+      $( '#tweet_meter' ).attr("style", "left: "+(0)+"%;")
+    }
+    else {
+      $( '#tweet_meter' ).attr("style", "left: "+(-pdem + 50)+"%;")
+    }
+    if (pdem2 < 0){
+      $( '#votes_meter' ).attr("style", "left: "+(0)+"%;")
+    }
+    else {
+      $( '#votes_meter' ).attr("style", "left: "+(-pdem2 + 50)+"%;")
+    }
+    if (pdem3 < 0){
+      $( '#donations_meter' ).attr("style", "left: "+(0)+"%;")
+    }
+    else{
+      $( '#donations_meter' ).attr("style", "left: "+(-pdem3 + 50)+"%;")
+    }
 
     var pol_alignment = function(pdem){
+      if (pdem < 0){
+        return "No data found"
+      }
       if (pdem < 20){
         return "Strong Republican"
       }
@@ -387,7 +421,7 @@
     }
 
     $( '#tweet_align' ).text(pol_alignment(pdem))
-    // $( '#votes_align' ).text(pol_alignment(pdem2))
+    $( '#votes_align' ).text(pol_alignment(pdem2))
     $( '#donations_align' ).text(pol_alignment(pdem3))
 
 
