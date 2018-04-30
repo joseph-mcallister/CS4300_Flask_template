@@ -23,7 +23,7 @@ def process_donations(donations, issue):
 	words = set([stemmer.stem(w.lower()) for w in issue.split(" ")]) - set(nltkCorp.stopwords.words('english'))
 
 	total = 0
-	donations_list = []
+	indirect_matches = []
 	donations = list(donations)
 	position_score = 0
 	direct_matches = []
@@ -32,7 +32,6 @@ def process_donations(donations, issue):
 		don["org_data"] = get_org_data(don["DonorOrganization"])
 		don["TransactionAmount"] = int(don["TransactionAmount"])
 		don["org_data"]["donation_total"] = int(float(don["org_data"]["donation_total"]))
-		donations_list.append(don)
 		total += don["TransactionAmount"]
 
 		found = False
@@ -41,18 +40,20 @@ def process_donations(donations, issue):
 				found = True
 		if found:
 			direct_matches.append(don)
+		else:
+			indirect_matches.append(don)
 
 		if float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]) > 0:
 			position_score += float(don["org_data"]["democrat_total"]) / (float(don["org_data"]["democrat_total"])+float(don["org_data"]["republican_total"]))
 
-	if len(donations_list) > 0:
-		position_score = round(position_score/len(donations_list)*100, 2)
+	if len(indirect_matches)+len(direct_matches) > 0:
+		position_score = round(position_score/(len(indirect_matches)+len(direct_matches))*100, 2)
 	else:
 		position_score = 50.00
 
 	if len(direct_matches) <= 10:
 		sample = sorted(direct_matches, key=lambda d:d["TransactionAmount"], reverse=True)
-		sample += sorted(donations_list, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(donations_list), 10-len(sample))]
+		sample += sorted(indirect_matches, key=lambda d:d["TransactionAmount"], reverse=True)[:min(len(indirect_matches), 10-len(sample))]
 	else:
 		sample = sorted(direct_matches[:10], key=lambda d:d["TransactionAmount"], reverse=True)
 
