@@ -12,7 +12,7 @@ import re
 import numpy as np
 from sklearn.preprocessing import normalize
 from scipy.sparse import *
-import time 
+import time
 from bisect import bisect_left
 
 project_name = "Fundy"
@@ -187,13 +187,13 @@ def process_votes(raw_vote_data, query, politician, data):
 	democrat_vote_score = vote_score_agree_with_party(data["votes"], "D")
 	data["vote_score_republican"] = republican_vote_score
 	data["vote_score_democrat"] = democrat_vote_score
-	data["party"] = politician_party
+	# data["party"] = politician_party
 	if republican_vote_score == 0 and democrat_vote_score == 0:
 		data["vote_scale"] = .5
 	else:
 		data["vote_scale"] = democrat_vote_score/(republican_vote_score+democrat_vote_score)
 	return data
-	
+
 def tokenizer_custom(tweet):
     token = TweetTokenizer()
     stemmer = PorterStemmer()
@@ -215,10 +215,21 @@ def tokenizer_custom(tweet):
     return tokens
 
 #return (top n tweet indices, n top tweet scores)
-def process_tweets(politician, query, n):
+def process_tweets(politician, query, n, data):
 	tweets = get_tweets_by_politician(politician)
 	vocab = json.load((open("app/irsystem/models/vocab.json", 'r')))['vocab']
 	query_tokens = tokenizer_custom(query)
+
+	#get party
+	first_tweet = tweets[0]
+	if "Democrat" in first_tweet["array_agg"]:
+		politician_party = "Democrat"
+	elif "Republican" in first_tweet["array_agg"]:
+		politician_party = "Republican"
+	else:
+		politician_party= "Independent"
+
+	data["party"] = politician_party
 
     #check query validity before proceeding
 	valid_query = False
@@ -228,7 +239,7 @@ def process_tweets(politician, query, n):
 		else:
 			query_tokens.remove(token)
 	if valid_query == False:
-		return ([],[])
+		return ([],[],0)
 
 	#dot query arrays
 	query_dict = {}
@@ -268,13 +279,16 @@ def process_tweets(politician, query, n):
 
 	final_lst = []
 	total_sentiment = 0.0
+	num_dem = 0
 	for i in range(len(top_docs)):
 		idx = top_docs[i]
 		final_lst.append({"tweet": just_tweets[idx][0], "sentiment": just_tweets[idx][1], "score": top_scores[i], "political": just_tweets[idx][2],
 			"favorites": just_tweets[idx][3], "retweets": just_tweets[idx][4]})
 		total_sentiment += just_tweets[idx][1]["compound"]
+		if (just_tweets[idx][2]["Conservative"] + just_tweets[idx][2]["Libertarian"] < just_tweets[idx][2]["Liberal"] + just_tweets[idx][2]["Green"]):
+			num_dem += 1
 
-	return (final_lst, total_sentiment)
+	return (final_lst, total_sentiment, num_dem)
 
 @irsystem.route('/', methods=['GET'])
 def search():
@@ -290,7 +304,7 @@ def search():
 				data=data,
 		)
 	else:
-		output_message_politician = "Politician Name: " + politician_query 
+		output_message_politician = "Politician Name: " + politician_query
 		output_message_issue = "Issue: " + free_form_query
 		data = {
 			"politician": politician_query,
@@ -300,32 +314,25 @@ def search():
 			"votes": [],
 			"vote_score": 0.0
 		}
-		if politician_query:	
+		if politician_query:
 			donation_data = get_relevant_donations(politician_query, get_issue_list(free_form_query))
 
 			don_data = process_donations(donation_data, free_form_query)
 			data["donations"] = don_data
 
-			tweet_dict, total_sentiment = process_tweets(politician_query, free_form_query, 10)
+			tweet_dict, total_sentiment, total_dem = process_tweets(politician_query, free_form_query, 10, data)
 
 			#return top 5 for now
 			if len(tweet_dict) != 0:
 				avg_sentiment = round(total_sentiment/10,2)
-				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment}
+				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment, 'pdem': total_dem * 10}
 
-			t0 = time.time()
 
 			raw_vote_data = get_votes_by_politician(politician_query)
 			# Find all votes that have a subject that contains the issue typed in
 			data = process_votes(raw_vote_data, free_form_query, politician_query, data)
 
-			t1 = time.time()
-			total = t1-t0
-			print("TIMING: %d \n" % total)
 
-		if free_form_query:
-			pass
-			#print("Need to implement this")
 		return render_template('search.html',
 				name=project_name,
 				netid=net_id,
