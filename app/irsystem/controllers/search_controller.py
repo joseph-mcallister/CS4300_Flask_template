@@ -288,7 +288,6 @@ def process_tweets(politician, query, n, data):
 		if (just_tweets[idx][2]["Conservative"] + just_tweets[idx][2]["Libertarian"] < just_tweets[idx][2]["Liberal"] + just_tweets[idx][2]["Green"]):
 			num_dem += 1
 
-	print("HELLLOOOOO", num_dem)
 	return (final_lst, total_sentiment, num_dem)
 
 @irsystem.route('/', methods=['GET'])
@@ -328,19 +327,12 @@ def search():
 				avg_sentiment = round(total_sentiment/10,2)
 				data["tweets"] = {'tweet_dict': tweet_dict, 'avg_sentiment': avg_sentiment, 'pdem': total_dem * 10}
 
-			t0 = time.time()
 
 			raw_vote_data = get_votes_by_politician(politician_query)
 			# Find all votes that have a subject that contains the issue typed in
 			data = process_votes(raw_vote_data, free_form_query, politician_query, data)
 
-			t1 = time.time()
-			total = t1-t0
-			print("TIMING: %d \n" % total)
 
-		if free_form_query:
-			pass
-			#print("Need to implement this")
 		return render_template('search.html',
 				name=project_name,
 				netid=net_id,

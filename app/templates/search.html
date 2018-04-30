@@ -424,14 +424,6 @@
     $( '#votes_align' ).text(pol_alignment(pdem2))
     $( '#donations_align' ).text(pol_alignment(pdem3))
 
-
-    if ({{ data["donations"]["sample"]|length}} > 0 ) {
-      console.log("we have donations data");
-    }
-    if ({{ data["tweets"]|length}} > 0 ) {
-      console.log("we have tweets data");
-    } else {console.log(":(")}
-
     </script>
 
   </body>
