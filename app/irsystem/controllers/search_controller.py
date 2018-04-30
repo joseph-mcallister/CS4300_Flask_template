@@ -180,7 +180,7 @@ def process_votes(raw_vote_data, query, politician, data):
 				democratic_votes = vote["vote"]["democratic"]
 				republican_votes = vote["vote"]["republican"]
 				independent_votes = vote["vote"]["independent"]
-			if position and position["vote_position"] != "Not Voting" and position["vote_position"] != "Present" and politician_vote != "Unknown":
+			if position and position["vote_position"] != "Not Voting" and position["vote_position"] != "Present" and position["vote_position"] != "Speaker" and politician_vote != "Unknown":
 				data["votes"].append({"relevant_topic":relevant_topic, "url":url, "party":position["party"], "title":title, "description":description, "vote_position":politician_vote, "independent":independent_votes, "democratic":democratic_votes, "republican":republican_votes})
 	#Do basic scoring system where score is % of time vote with party
 	republican_vote_score = vote_score_agree_with_party(data["votes"], "R")
