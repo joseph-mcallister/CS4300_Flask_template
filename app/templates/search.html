@@ -361,11 +361,10 @@
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    if(data["donations"]["score"]){ // need to add this check or will error out
-      var pdem3 = {{data["donations"]["score"]}};
-    }
     var pdem = 0;
-    var pdem2 = 0;
+    var pdem2 = 50;
+    // var pdem3 = {{data["donations"]["score"]}}; //THIS IS THE BUG...
+    var pdem3 = 100; //temp fix
     $( '#tweet_meter' ).attr("style", "left: "+(-pdem + 50)+"%;")
     $( '#votes_meter' ).attr("style", "left: "+(-pdem2 + 50)+"%;")
     $( '#donations_meter' ).attr("style", "left: "+(-pdem3 + 50)+"%;")
